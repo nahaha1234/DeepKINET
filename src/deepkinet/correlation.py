@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 
 def safe_toarray(x):
-    if type(x) != np.ndarray:
-        x = x.toarray()
-        if not np.all(x == np.floor(x)):
+    if type(x) != np.ndarray:#多次元配列
+        x = x.toarray()#疎行列に０を埋め込む
+        if not np.all(x == np.floor(x)):#xが整数なら(floorは小数点以下の切り捨て)
             raise ValueError('target layer of adata should be raw count')
         return x
     else:
@@ -90,8 +90,8 @@ def corr_to_answer(adata, each_beta_layer, each_gamma_layer, mode, cluster_name,
 
 
 
-def autocorr(adata, layer_1, layer_2):
-    if layer_1 in adata.layers.keys():
+def autocorr(adata, layer_1, layer_2):#大体相関係数を計算している
+    if layer_1 in adata.layers.keys():#layer_1がadata.layersの中にグループの名前として存在しているか
         df_1 = pd.DataFrame(adata.layers[layer_1], index=adata.obs.index, columns=adata.var.index)
         df_2 = pd.DataFrame(adata.layers[layer_2], index=adata.obs.index, columns=adata.var.index)
     elif layer_1 in adata.uns.keys():
@@ -103,14 +103,14 @@ def autocorr(adata, layer_1, layer_2):
     print('abs mean',autocorr_abs_mean)
     return autocorr_abs_mean
 
-def dropout_rates(adata):
+def dropout_rates(adata):#各データの0の割合を計算している
     n_obs = int(adata.n_obs)
     n_vars = int(adata.n_vars)
     all_n = n_obs * n_vars
-    s_df = adata.to_df(layer='spliced')
+    s_df = adata.to_df(layer='spliced')#adataデータのなかで条件にはまるデータを取り出している
     u_df = adata.to_df(layer='unspliced')
     s_u_df = s_df + u_df
-    df_bool_s_u = (s_u_df == 0)
+    df_bool_s_u = (s_u_df == 0)#勝手にboolでやってくれてる
     dropout_rate = df_bool_s_u.sum().sum() / all_n
     print('dropout_rate',dropout_rate)
     return dropout_rate
